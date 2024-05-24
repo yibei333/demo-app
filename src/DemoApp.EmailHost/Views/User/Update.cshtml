@@ -1,0 +1,18 @@
+﻿@model UserViewModel;
+
+<a asp-action="Index">返回</a>
+
+<form asp-action="UpdatePost" method="post">
+    <input hidden="hidden" asp-for="Id" />
+    <div>
+        <label asp-for="Name">姓名</label>
+        <input asp-for="Name" />
+    </div>
+    <div>
+        <label asp-for="Password">密码</label>
+        <input asp-for="Password" />
+    </div>
+    <div>
+        <button type="submit">更新</button>
+    </div>
+</form>

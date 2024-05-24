@@ -1,0 +1,23 @@
+﻿@model List<EmailViewModel>
+
+<table>
+    <thead>
+        <tr>
+            <th>主题</th>
+            <th>创建时间</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Subject</td>
+                <td>@item.CreateTimeValue</td>
+                <td>
+                    <a asp-action="Detail" asp-route-id="@item.Id">详情</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

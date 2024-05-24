@@ -1,0 +1,18 @@
+﻿@model UserViewModel;
+
+<form asp-action="DeletePost" method="post">
+    <input hidden="hidden" asp-for="Id" />
+    <div>
+        <label asp-for="Name">姓名</label>
+        <input asp-for="Name" readonly />
+    </div>
+    <div>
+        <label asp-for="Password">密码</label>
+        <input asp-for="Password" readonly />
+    </div>
+    <div>
+        <button type="submit">确定删除</button>
+    </div>
+</form>
+
+<a asp-action="Index">返回</a>

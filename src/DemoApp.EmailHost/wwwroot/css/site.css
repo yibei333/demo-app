@@ -1,0 +1,16 @@
+
+.inline {
+    margin: 1rem;
+    padding: 1rem;
+    border: 1px solid #ccc;
+    border-radius: .5rem;
+}
+
+    .inline label {
+        display: inline;
+        font-weight: bold;
+    }
+
+    .inline p {
+        display: inline;
+    }

@@ -1,0 +1,74 @@
+﻿@model EmailViewModel;
+
+<a asp-action="Index">返回</a>
+
+<div class="inline">
+    <label>From:</label>
+    <p>@Model.From</p>
+</div>
+
+<div class="inline">
+    <label>To:</label>
+    <p>@Model.To</p>
+</div>
+
+<div class="inline">
+    <label>CC:</label>
+    <p>@Model.CC</p>
+</div>
+
+<div class="inline">
+    <label>Subject:</label>
+    <p>@Model.Subject</p>
+</div>
+
+<div class="inline">
+    <label>Body:</label>
+    <p>@Html.Raw(Model.Body)</p>
+</div>
+
+<div class="inline">
+    <label>附件:</label>
+    <ul>
+        @foreach (var item in Model.Attachments)
+        {
+            <li>@item.Name <button onclick="download(event)" data-name="@item.Name" data-mimetype="@item.MimeType" data-value="@item.Data">下载</button></li>
+        }
+    </ul>
+</div>
+
+<script>
+    function download(e) {
+        let name = e.target.attributes["data-name"].value;
+        let data = e.target.attributes["data-value"].value;
+        let mimeType = e.target.attributes["data-mimetype"].value;
+        let blob = convertBase64ToBlob(data, mimeType);
+        downloadBlob(blob, name);
+    }
+
+    function convertBase64ToBlob(base64, type) {
+        const byteCharacters = atob(base64);
+        const byteArrays = [];
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteArrays.push(byteCharacters.charCodeAt(i));
+        }
+        return new Blob([new Uint8Array(byteArrays)], { type: type });
+    }
+
+    function downloadBlob(blob, name) {
+        const url = URL.createObjectURL(blob);
+
+        // 创建链接
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = name;
+
+        // 模拟点击链接进行下载
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // 释放 URL 对象
+        URL.revokeObjectURL(url);
+    }
+</script>

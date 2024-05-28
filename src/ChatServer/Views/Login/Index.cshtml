@@ -1,0 +1,21 @@
+﻿@model LoginViewModel
+
+<form asp-action="Login" method="post">
+    <div>
+        <label asp-for="Name">姓名</label>
+        <input asp-for="Name" />
+    </div>
+    <div>
+        <label asp-for="Password">密码</label>
+        <input asp-for="Password" />
+    </div>
+    @if (Model.ErrorMessage.NotNullOrWhiteSpace())
+    {
+        <div>
+            @Model.ErrorMessage
+        </div>
+    }
+    <div>
+        <button type="submit">Login</button>
+    </div>
+</form>

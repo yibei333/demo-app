@@ -6,26 +6,33 @@ namespace ChatServer.TcpHost;
 
 public class TcpHostedService : IHostedService
 {
-    readonly ILogger<TcpHostedService> _logger;
-    readonly Socket _server;
+    internal readonly Socket Server;
     readonly List<TcpSession> _connections = [];
 
-    public TcpHostedService(ILogger<TcpHostedService> logger)
+    public TcpHostedService(IServiceProvider serviceProvider)
     {
-        _logger = logger;
-        _server = new Socket(SocketType.Stream, ProtocolType.Tcp);
-        _server.Bind(new IPEndPoint(IPAddress.Any, 7654));
+        Server = new Socket(SocketType.Stream, ProtocolType.Tcp);
+        Server.Bind(new IPEndPoint(IPAddress.Any, 7654));
+        ServiceProvider = serviceProvider.CreateScope().ServiceProvider;
     }
+
+    public IServiceProvider ServiceProvider { get; }
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
+        Start(cancellationToken);
+        await Task.CompletedTask;
+    }
+
+    async void Start(CancellationToken cancellationToken)
+    {
         await Task.Yield();
-        _server.Listen();
+        Server.Listen();
 
         while (true)
         {
-            var connection = await _server.AcceptAsync(cancellationToken);
-            var session = new TcpSession(connection);
+            var connection = await Server.AcceptAsync(cancellationToken);
+            var session = new TcpSession(connection, this);
             _connections.Add(session);
             session.Receive();
         }
@@ -33,7 +40,18 @@ public class TcpHostedService : IHostedService
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        await _server.DisconnectAsync(false, cancellationToken);
-        _server.Dispose();
+        await Server.DisconnectAsync(false, cancellationToken);
+        Server.Dispose();
+    }
+
+    internal TcpSession? GetSessionByUserId(Guid userId)
+    {
+        return _connections.FirstOrDefault(x => x.UserId == userId);
+    }
+
+    internal void RemoveSession(TcpSession session)
+    {
+        _connections.Remove(session);
+        session.Dispose();
     }
 }

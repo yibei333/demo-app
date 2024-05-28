@@ -1,6 +1,10 @@
-using System.Net.Sockets;
+using ChatServer.Services;
+using ChatServer.TcpHost;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<MessageService>();
+builder.Services.AddHostedService<TcpHostedService>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

@@ -1,5 +1,7 @@
+using ChatServer.Services;
 using Microsoft.AspNetCore.Mvc;
 using SharpDevLib.Standard;
+using System.Net.Mime;
 
 namespace ChatServer.Controllers;
 
@@ -29,6 +31,20 @@ public class MessageController : BaseController
         }
         return Reply.Succeed(model);
     }
+
+    public IActionResult Index()
+    {
+        var data = MessageService.GetMany(x => true).Select(x => new MessageModel { MessageId = x.Id, MessageType = x.Type, Message = x.Message }).ToList();
+        return View(data);
+    }
+
+    [HttpPost]
+    public Reply<Guid> CreateTextMessage([FromBody]CreateMessageRequest request)
+    {
+        var entity = new MessageEntity { Id = Guid.NewGuid(), Message = request.Message, Type = 1 };
+        MessageService.Add(entity);
+        return Reply.Succeed(entity.Id);
+    }
 }
 
 public class MessageModel
@@ -39,4 +55,9 @@ public class MessageModel
     public int MessageType { get; set; }
     public string? Message { get; set; }
     public byte[]? Bytes { get; set; }
+}
+
+public class CreateMessageRequest
+{
+    public string? Message { get; set; }
 }

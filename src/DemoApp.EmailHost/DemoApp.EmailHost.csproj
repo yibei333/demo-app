@@ -13,7 +13,7 @@
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="SharpDevLib.Standard" Version="0.1.0" />
+		<PackageReference Include="SharpDevLib.Standard" Version="0.1.8-alpha" />
 		<PackageReference Include="SmtpServer" Version="10.0.1" />
 		<PackageReference Include="MimeKit" Version="4.6.0" />
 	</ItemGroup>

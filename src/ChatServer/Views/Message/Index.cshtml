@@ -1,0 +1,20 @@
+﻿@model List<MessageModel>
+
+<table>
+    <thead>
+        <tr>
+            <th>类型</th>
+            <th>消息</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.MessageType</td>
+                <td>@item.Message</td>
+            </tr>
+        }
+    </tbody>
+</table>

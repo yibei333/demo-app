@@ -11,10 +11,12 @@ public abstract class BaseController : Controller
         Logger = ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger(GetType().Name);
         UserService = ServiceProvider.GetRequiredService<UserService>();
         MessageService = ServiceProvider.GetRequiredService<MessageService>();
+        ConnectionService = ServiceProvider.GetRequiredService<ConnectionService>();
     }
 
     public IServiceProvider ServiceProvider { get; }
     public ILogger Logger { get; }
     public UserService UserService { get; }
     public MessageService MessageService { get; }
+    public ConnectionService ConnectionService { get; }
 }

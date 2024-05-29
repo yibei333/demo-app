@@ -1,5 +1,5 @@
-﻿using System.Net.Sockets;
-using System.Windows;
+﻿using System.Collections.ObjectModel;
+using System.Net.Sockets;
 using System.Windows.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -53,6 +53,15 @@ public partial class HomeViewModel : ObservableObject
     [ObservableProperty]
     int serverPort = 7654;
 
+    [ObservableProperty]
+    ObservableCollection<IdNameDto> users = [];
+
+    [ObservableProperty]
+    Guid selectedUserId;
+
+    [ObservableProperty]
+    string message;
+
     public HomePage Page { get; }
 
     public IAsyncRelayCommand ConnectCommand { get; }
@@ -62,20 +71,30 @@ public partial class HomeViewModel : ObservableObject
         await Task.Yield();
         try
         {
-            Page.Socket.Connect(ServerHost, ServerPort);
-            Receive();
+            Page.Socket.BeginConnect(ServerHost, ServerPort, (result) =>
+            {
+                Page.Socket.EndConnect(result);
 
-            var method = BitConverter.GetBytes(1);
-            var content = $"{Id},{DeviceId}".ToUtf8Bytes();
-            var data = method.Concat(content).ToArray();
-            Page.Socket.Send(data);
+                try
+                {
+                    Receive();
+
+                    var method = BitConverter.GetBytes(1);
+                    var content = $"{Id},{DeviceId}".ToUtf8Bytes();
+                    var data = method.Concat(content).ToArray();
+                    Page.Socket.Send(data);
+                }
+                catch (Exception ex)
+                {
+                    LogText(ex.Message);
+                }
+            }, null);
         }
         catch (Exception ex)
         {
             LogText(ex.Message);
         }
     }
-
 
     void Receive()
     {
@@ -85,8 +104,15 @@ public partial class HomeViewModel : ObservableObject
             try
             {
                 var length = Page.Socket.EndReceive(res);
-                await HandleMessage(buffer[..length]);
-                Receive();
+                if (length > 0)
+                {
+                    await HandleMessage(buffer[..length]);
+                    Receive();
+                }
+                else
+                {
+                    Disconnect();
+                }
             }
             catch (Exception ex)
             {
@@ -120,9 +146,79 @@ public partial class HomeViewModel : ObservableObject
         }
     }
 
+    [RelayCommand]
+    async Task Disconnect()
+    {
+        await Page.Socket.DisconnectAsync(true);
+        LogText("已断开连接");
+    }
+
     void LogText(string? text)
     {
         Page.Dispatcher.Invoke(() => Page.Log.Text += $"{text}\r\n");
+    }
+
+    [RelayCommand]
+    async Task GetUsersAsync()
+    {
+        var reply = await App.Instance.ServiceProvider.GetRequiredService<IHttpService>().GetAsync<Reply<List<IdNameDto>>>(new HttpKeyValueRequest(App.ApiUrl.CombinePath("User/get")));
+        if (!reply.IsSuccess)
+        {
+            LogText(reply.Message);
+            return;
+        }
+        if (!reply.Data!.Success)
+        {
+            LogText(reply.Data.Description);
+            return;
+        }
+        Users.Clear();
+        reply.Data.Data!.ForEach(x => Users.Add(x));
+    }
+
+    [RelayCommand]
+    async Task SendMessageAsync()
+    {
+        if (SelectedUserId == Guid.Empty)
+        {
+            LogText("请选择用户");
+            return;
+        }
+
+        if (Message.IsNullOrWhiteSpace())
+        {
+            LogText("消息不能为空");
+            return;
+        }
+
+        if (!Page.Socket.Connected)
+        {
+            LogText("请先连接服务器");
+            return;
+        }
+
+        var json = new { Message = message }.Serialize();
+        var reply = await App.Instance.ServiceProvider.GetRequiredService<IHttpService>().PostAsync<Reply<Guid>>(new HttpJsonRequest(App.ApiUrl.CombinePath("Message/CreateTextMessage"), json));
+        if (!reply.IsSuccess)
+        {
+            LogText(reply.Message.IsNullOrWhiteSpace() ? reply.Code.ToString() : reply.Message);
+            return;
+        }
+        if (!reply.Data!.Success)
+        {
+            LogText(reply.Data.Description);
+            return;
+        }
+
+        SendMessage(SelectedUserId, reply.Data.Data);
+    }
+
+    void SendMessage(Guid toUserId, Guid messageId)
+    {
+        var toUserData = toUserId.ToString().ToUtf8Bytes();
+        var contentBytes = messageId.ToString().ToUtf8Bytes();
+        var data = BitConverter.GetBytes(2).Concat(toUserData).Concat(contentBytes).ToArray();
+        Page.Socket.Send(data);
     }
 }
 

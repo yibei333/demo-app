@@ -5,43 +5,63 @@ using System.Text;
 
 namespace ChatServer.TcpHost;
 
-public class TcpSession : IDisposable
+public class TcpSession
 {
     public TcpSession(Socket socket, TcpHostedService hostedService)
     {
         Socket = socket;
         HostedService = hostedService;
+        Logger = HostedService.ServiceProvider.GetRequiredService<ILogger<TcpSession>>();
     }
 
     public Guid UserId { get; set; }
     public Guid DeviceId { get; set; }
     public Socket Socket { get; set; }
     public TcpHostedService HostedService { get; }
+    public ILogger<TcpSession> Logger { get; }
 
-    public void Dispose()
+    public void Receive()
     {
-        Socket?.Dispose();
-    }
-
-    public async void Receive()
-    {
-        await Task.Yield();
         var buffer = new byte[2048];
-
+       
         try
         {
-            var length = await Socket.ReceiveAsync(buffer);
-            HandleData(buffer[..length]);
-            Receive();
+            Socket.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, (result) =>
+            {
+                try
+                {
+                    var length = Socket.EndReceive(result);
+                    if (length > 0)
+                    {
+                        HandleData(buffer[..length]);
+                        Receive();
+                    }
+                    else
+                    {
+                        Disconnect();
+                    }
+                }
+                catch (SocketException ex)
+                {
+                    Disconnect();
+                    Logger.LogError(ex, ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, ex.Message);
+                    Receive();
+                }
+            }, null);
         }
         catch (SocketException ex)
         {
-            HostedService.RemoveSession(this);
-            await Console.Out.WriteLineAsync(ex.Message);
+            Disconnect();
+            Logger.LogError(ex, ex.Message);
         }
         catch (Exception ex)
         {
-            await Console.Out.WriteLineAsync(ex.Message);
+            Logger.LogError(ex, ex.Message);
+            Receive();
         }
     }
 
@@ -68,24 +88,34 @@ public class TcpSession : IDisposable
         this.UserId = array[0].ToGuid();
         this.DeviceId = array[1].ToGuid();
 
-        var fromUserData = UserService.SystemUserId.ToString().ToUtf8Bytes();
-        var contentBytes = MessageService.LoginSuccessMessageId.ToString().ToUtf8Bytes();
-        var data = fromUserData.Concat(contentBytes).ToArray();
-        Socket.Send(data);
+        SendMessage(UserService.SystemUserId, MessageService.LoginSuccessMessageId);
     }
 
     void HandleMessage(byte[] bytes)
     {
-        var userIdSegmentLength = 16;
+        var userIdSegmentLength = 36;
         var userIdSegmentData = bytes[..userIdSegmentLength];
         var userId = userIdSegmentData.ToUtf8String().ToGuid();
-        var contentBytes = bytes[userIdSegmentLength..];
+        var messageId = bytes[userIdSegmentLength..].ToUtf8String().ToGuid();
 
         var session = HostedService.GetSessionByUserId(userId);
         if (session is null) return;
 
-        var fromUserData = UserId.ToString().ToUtf8Bytes();
+        session.SendMessage(UserId, messageId);
+    }
+
+    public void SendMessage(Guid fromUserId, Guid messageId)
+    {
+        var fromUserData = fromUserId.ToString().ToUtf8Bytes();
+        var contentBytes = messageId.ToString().ToUtf8Bytes();
         var data = fromUserData.Concat(contentBytes).ToArray();
-        session.Socket.Send(data);
+        Socket.Send(data);
+    }
+
+    public void Disconnect()
+    {
+        if (Socket.Connected) Socket.Disconnect(false);
+        HostedService.RemoveSession(this);
+        Socket.Dispose();
     }
 }

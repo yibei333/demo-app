@@ -2,15 +2,15 @@ using ChatServer.Services;
 using ChatServer.TcpHost;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddScoped<UserService>();
-builder.Services.AddScoped<MessageService>();
+builder.Services.AddSingleton<UserService>();
+builder.Services.AddSingleton<MessageService>();
+builder.Services.AddSingleton<ConnectionService>();
 builder.Services.AddHostedService<TcpHostedService>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
-app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthorization();

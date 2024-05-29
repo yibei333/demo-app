@@ -1,0 +1,17 @@
+﻿@model ConnectionViewModel
+
+<form asp-action="DisconnectPost" method="post">
+    <div>
+        <input asp-for="UserId" value="@Model.UserId" hidden />
+
+        <label asp-for="UserName">用户:</label>
+        <input asp-for="UserName" value="@Model.UserName" readonly />
+    </div>
+    <div>
+        <label asp-for="DeviceId">设备Id:</label>
+        <input asp-for="DeviceId" value="@Model.DeviceId" readonly />
+    </div>
+    <div>
+        <button type="submit">断开</button>
+    </div>
+</form>

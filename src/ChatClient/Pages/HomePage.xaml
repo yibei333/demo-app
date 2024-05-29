@@ -7,38 +7,93 @@
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
       d:DataContext="{Binding RelativeSource={RelativeSource Mode=Self},Path=ViewModel}"
+      d:Background="White"
       Title="HomePage">
 
-    <StackPanel>
-        <StackPanel Orientation="Horizontal">
-            <StackPanel>
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel>
+            <StackPanel Orientation="Horizontal">
                 <TextBlock>Hello,</TextBlock>
                 <TextBlock Text="{Binding Name}"></TextBlock>
             </StackPanel>
-            <StackPanel>
+            <StackPanel Orientation="Horizontal">
                 <TextBlock>Id:</TextBlock>
                 <TextBlock Text="{Binding Id}"></TextBlock>
             </StackPanel>
-            <StackPanel>
+            <StackPanel Orientation="Horizontal">
                 <TextBlock>DeviceId:</TextBlock>
                 <TextBlock Text="{Binding DeviceId}"></TextBlock>
             </StackPanel>
         </StackPanel>
 
-        <StackPanel>
-            <StackPanel Orientation="Horizontal">
+        <StackPanel Grid.Row="1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
                 <TextBlock>Server Host:</TextBlock>
-                <TextBox Text="{Binding ServerHost}"></TextBox>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal">
+                <TextBox Grid.Column="1" Text="{Binding ServerHost}"></TextBox>
+            </Grid>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
                 <TextBlock>Server Port:</TextBlock>
-                <TextBox Text="{Binding ServerPort}"></TextBox>
-            </StackPanel>
+                <TextBox Grid.Column="1" Text="{Binding ServerPort}"></TextBox>
+            </Grid>
         </StackPanel>
 
-        <Button Command="{Binding ConnectCommand}">连接服务器</Button>
-        <ScrollViewer>
-            <TextBlock Height="200" x:Name="Log" TextWrapping="WrapWithOverflow"></TextBlock>
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Button Command="{Binding ConnectCommand}">连接</Button>
+            <Button Command="{Binding DisconnectCommand}" Grid.Column="1">断开</Button>
+        </Grid>
+
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <ListBox ItemsSource="{Binding Users}" SelectedValuePath="Id" SelectedValue="{Binding SelectedUserId}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Name}"></TextBlock>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+                <Button Grid.Row="1" Command="{Binding GetUsersCommand}">刷新</Button>
+            </Grid>
+
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <TextBox Text="{Binding Message}"></TextBox>
+                <Button Grid.Row="1" Command="{Binding SendMessageCommand}">发送</Button>
+            </Grid>
+        </Grid>
+
+        <ScrollViewer Grid.Row="4" BorderThickness="1" BorderBrush="Gray" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <TextBlock x:Name="Log" TextWrapping="WrapWithOverflow"></TextBlock>
         </ScrollViewer>
-    </StackPanel>
+    </Grid>
 </Page>

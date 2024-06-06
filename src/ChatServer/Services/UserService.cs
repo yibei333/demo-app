@@ -2,7 +2,8 @@
 
 public class UserService : BaseService<UserEntity>
 {
-    public static Guid SystemUserId = Guid.NewGuid();
+    public static readonly Guid SystemUserId = Guid.NewGuid();
+
     public override List<UserEntity> SeedData()
     {
         return

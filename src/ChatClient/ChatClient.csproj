@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
-    <PackageReference Include="SharpDevLib.Standard" Version="0.1.8-alpha" />
+    <PackageReference Include="SharpDevLib.Standard" Version="0.1.11-alpha" />
   </ItemGroup>
 
 </Project>

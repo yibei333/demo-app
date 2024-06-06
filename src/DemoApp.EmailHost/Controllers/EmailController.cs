@@ -33,7 +33,7 @@ public class EmailController(IServiceProvider serviceProvider) : BaseController(
             {
                 using var partStream = new MemoryStream();
                 part.Content.Stream.CopyTo(partStream);
-                model.Attachments.Add(new NameData(part.FileName, partStream.ToArray().ToUtf8String(), part.ContentType.MimeType));
+                model.Attachments.Add(new AttachmentModel(part.FileName, partStream.ToArray().ToUtf8String(), part.ContentType.MimeType));
             }
             else
             {

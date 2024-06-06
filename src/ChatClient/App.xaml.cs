@@ -1,7 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SharpDevLib.Standard;
-using System.Configuration;
-using System.Data;
 using System.Windows;
 
 namespace ChatClient;

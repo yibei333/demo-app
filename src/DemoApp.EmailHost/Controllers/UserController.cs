@@ -79,7 +79,7 @@ public class UserController(IServiceProvider serviceProvider) : BaseController(s
     }
 
     [HttpPost]
-    public IActionResult DeletePost(Guid id, [Bind("Id,Name,Password")] UserViewModel model)
+    public IActionResult DeletePost(Guid id)
     {
         var entity = _userRepository.Get(x => x.Id == id) ?? throw new NullReferenceException();
         entity.IsDeleted = true;

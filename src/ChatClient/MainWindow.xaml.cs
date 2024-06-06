@@ -8,7 +8,7 @@ namespace ChatClient;
 /// </summary>
 public partial class MainWindow : Window
 {
-    public static MainWindow Instance = null!;
+    public static MainWindow Instance { get; private set; } = null!;
 
     public MainWindow()
     {

@@ -10,7 +10,7 @@ namespace ChatClient.Pages
     /// </summary>
     public partial class LoginPage : Page
     {
-        static string LoginUrl = App.ApiUrl.CombinePath("Login?Name=foo&Password=foo_password");
+        static readonly string LoginUrl = App.ApiUrl.CombinePath("Login?Name=foo&Password=foo_password");
 
         public LoginPage()
         {

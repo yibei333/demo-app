@@ -1,16 +1,11 @@
 using ChatServer.Services;
 using Microsoft.AspNetCore.Mvc;
 using SharpDevLib.Standard;
-using System.Net.Mime;
 
 namespace ChatServer.Controllers;
 
-public class MessageController : BaseController
+public class MessageController(IServiceProvider serviceProvider) : BaseController(serviceProvider)
 {
-    public MessageController(IServiceProvider serviceProvider) : base(serviceProvider)
-    {
-    }
-
     public Reply<MessageModel> Get([FromQuery] MessageModel model)
     {
         var user = UserService.Get(x => x.Id == model.UserId);
@@ -39,7 +34,7 @@ public class MessageController : BaseController
     }
 
     [HttpPost]
-    public Reply<Guid> CreateTextMessage([FromBody]CreateMessageRequest request)
+    public Reply<Guid> CreateTextMessage([FromBody] CreateMessageRequest request)
     {
         var entity = new MessageEntity { Id = Guid.NewGuid(), Message = request.Message, Type = 1 };
         MessageService.Add(entity);

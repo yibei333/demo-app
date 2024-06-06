@@ -9,9 +9,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Email", "Email", "{514F883D
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Chat", "Chat", "{7EFE0EA8-1641-46AA-B85E-60D542CC7E34}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatServer", "ChatServer\ChatServer.csproj", "{7858A1A7-3D10-435F-9A8D-E215A2841322}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChatServer", "ChatServer\ChatServer.csproj", "{7858A1A7-3D10-435F-9A8D-E215A2841322}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatClient", "ChatClient\ChatClient.csproj", "{4EDFCF06-68C0-4BBB-B675-01D459D1B14E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChatClient", "ChatClient\ChatClient.csproj", "{4EDFCF06-68C0-4BBB-B675-01D459D1B14E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,5 +39,8 @@ Global
 		{F2A3760B-A5B3-438F-9307-31E21E9C3054} = {514F883D-14E9-4D23-939A-322E1CAA9BEA}
 		{7858A1A7-3D10-435F-9A8D-E215A2841322} = {7EFE0EA8-1641-46AA-B85E-60D542CC7E34}
 		{4EDFCF06-68C0-4BBB-B675-01D459D1B14E} = {7EFE0EA8-1641-46AA-B85E-60D542CC7E34}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E0110BDE-FC0B-4135-8A42-6BC98EE7DF5D}
 	EndGlobalSection
 EndGlobal

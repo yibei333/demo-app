@@ -1,7 +1,9 @@
 using ChatServer.Services;
 using ChatServer.TcpHost;
+using SharpDevLib.Standard;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddTcp();
 builder.Services.AddSingleton<UserService>();
 builder.Services.AddSingleton<MessageService>();
 builder.Services.AddSingleton<ConnectionService>();

@@ -2,12 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ChatServer.Controllers;
 
-public class HomeController : BaseController
+public class HomeController(IServiceProvider serviceProvider) : BaseController(serviceProvider)
 {
-    public HomeController(IServiceProvider serviceProvider) : base(serviceProvider)
-    {
-    }
-
     public IActionResult Index()
     {
         return View();

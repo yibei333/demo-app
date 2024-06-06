@@ -1,10 +1,9 @@
-﻿using System.Collections.ObjectModel;
-using System.Net.Sockets;
-using System.Windows.Controls;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
 using SharpDevLib.Standard;
+using System.Collections.ObjectModel;
+using System.Windows.Controls;
 
 namespace ChatClient.Pages;
 
@@ -13,25 +12,25 @@ namespace ChatClient.Pages;
 /// </summary>
 public partial class HomePage : Page
 {
-    internal Socket Socket { get; }
+    internal TcpClientFactory Factory { get; }
 
     public HomePage()
     {
         InitializeComponent();
-        Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-        MainWindow = MainWindow.Instance;
         ViewModel = new HomeViewModel(this) { Name = App.UserName, Id = App.UserId, DeviceId = App.DeviceId };
         DataContext = ViewModel;
+        Factory = new TcpClientFactory();
     }
 
-    MainWindow MainWindow { get; }
     HomeViewModel ViewModel { get; }
 }
 
 
 public partial class HomeViewModel : ObservableObject
 {
+    TcpClient? _client;
+
     public HomeViewModel(HomePage page)
     {
         Page = page;
@@ -60,7 +59,7 @@ public partial class HomeViewModel : ObservableObject
     Guid selectedUserId;
 
     [ObservableProperty]
-    string message;
+    string? message;
 
     public HomePage Page { get; }
 
@@ -69,59 +68,34 @@ public partial class HomeViewModel : ObservableObject
     async Task Connect()
     {
         await Task.Yield();
-        try
+        _client = Page.Factory.Create(System.Net.IPAddress.Parse(ServerHost), ServerPort);
+        _client.Received += Receive;
+        _client.Error += (s, e) => LogText(e.Exception.Message);
+        _client.StateChanged += (s, e) =>
         {
-            Page.Socket.BeginConnect(ServerHost, ServerPort, (result) =>
+            if (e.Current == TcpClientStates.Connected)
             {
-                Page.Socket.EndConnect(result);
-
-                try
-                {
-                    Receive();
-
-                    var method = BitConverter.GetBytes(1);
-                    var content = $"{Id},{DeviceId}".ToUtf8Bytes();
-                    var data = method.Concat(content).ToArray();
-                    Page.Socket.Send(data);
-                }
-                catch (Exception ex)
-                {
-                    LogText(ex.Message);
-                }
-            }, null);
-        }
-        catch (Exception ex)
-        {
-            LogText(ex.Message);
-        }
+                var method = BitConverter.GetBytes(1);
+                var content = $"{Id},{DeviceId}".ToUtf8Bytes();
+                var data = method.Concat(content).ToArray();
+                _client.Send(data);
+            }
+        };
+        ConnectAsync();
     }
 
-    void Receive()
+    async void ConnectAsync()
     {
-        var buffer = new byte[2048];
-        Page.Socket.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, async (res) =>
-        {
-            try
-            {
-                var length = Page.Socket.EndReceive(res);
-                if (length > 0)
-                {
-                    await HandleMessage(buffer[..length]);
-                    Receive();
-                }
-                else
-                {
-                    Disconnect();
-                }
-            }
-            catch (Exception ex)
-            {
-                LogText(ex.Message);
-            }
-        }, null);
+        if (_client is null) return;
+        await _client.ConnectAndReceiveAsync();
     }
 
-    async Task HandleMessage(byte[] bytes)
+    private void Receive(object? sender, TcpClientDataEventArgs e)
+    {
+        HandleMessage(e.Bytes);
+    }
+
+    async void HandleMessage(byte[] bytes)
     {
         try
         {
@@ -147,9 +121,9 @@ public partial class HomeViewModel : ObservableObject
     }
 
     [RelayCommand]
-    async Task Disconnect()
+    void Disconnect()
     {
-        await Page.Socket.DisconnectAsync(true);
+        _client?.Dispose();
         LogText("已断开连接");
     }
 
@@ -191,13 +165,13 @@ public partial class HomeViewModel : ObservableObject
             return;
         }
 
-        if (!Page.Socket.Connected)
+        if (_client?.State != TcpClientStates.Connected)
         {
             LogText("请先连接服务器");
             return;
         }
 
-        var json = new { Message = message }.Serialize();
+        var json = new { Message }.Serialize();
         var reply = await App.Instance.ServiceProvider.GetRequiredService<IHttpService>().PostAsync<Reply<Guid>>(new HttpJsonRequest(App.ApiUrl.CombinePath("Message/CreateTextMessage"), json));
         if (!reply.IsSuccess)
         {
@@ -218,7 +192,7 @@ public partial class HomeViewModel : ObservableObject
         var toUserData = toUserId.ToString().ToUtf8Bytes();
         var contentBytes = messageId.ToString().ToUtf8Bytes();
         var data = BitConverter.GetBytes(2).Concat(toUserData).Concat(contentBytes).ToArray();
-        Page.Socket.Send(data);
+        _client?.Send(data);
     }
 }
 

@@ -6,6 +6,7 @@ public class ErrorHandler(IServiceProvider serviceProvider) : BaseVoidHandler<IP
 {
     public override void Handle(IPOP3ConnectionInfo request1, Exception request2)
     {
-        ServiceProvider.GetRequiredService<ILogger<ErrorHandler>>().LogError(request2, request1.ClientIP.ToString());
+        var ip = request1.ClientIP.ToString();
+        ServiceProvider.GetRequiredService<ILogger<ErrorHandler>>().LogError(exception: request2, message: "client ip:{ip}", ip);
     }
 }

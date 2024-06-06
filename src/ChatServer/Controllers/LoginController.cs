@@ -3,12 +3,8 @@ using SharpDevLib.Standard;
 
 namespace ChatServer.Controllers;
 
-public class LoginController : BaseController
+public class LoginController(IServiceProvider serviceProvider) : BaseController(serviceProvider)
 {
-    public LoginController(IServiceProvider serviceProvider) : base(serviceProvider)
-    {
-    }
-
     public IActionResult Index(LoginViewModel viewModel)
     {
         return View(viewModel);

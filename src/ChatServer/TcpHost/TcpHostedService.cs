@@ -1,22 +1,21 @@
 ﻿
 using ChatServer.Services;
+using SharpDevLib.Standard;
 using System.Net;
-using System.Net.Sockets;
 
 namespace ChatServer.TcpHost;
 
 public class TcpHostedService : IHostedService
 {
-    internal readonly Socket Server;
     const int Port = 7654;
+    readonly TcpListener<TcpConnectionMetadata> _listener;
 
     public TcpHostedService(IServiceProvider serviceProvider)
     {
-        Server = new Socket(SocketType.Stream, ProtocolType.Tcp);
-        Server.Bind(new IPEndPoint(IPAddress.Any, Port));
         ServiceProvider = serviceProvider.CreateScope().ServiceProvider;
         ConnectionService = ServiceProvider.GetRequiredService<ConnectionService>();
         Logger = ServiceProvider.GetRequiredService<ILogger<TcpHostedService>>();
+        _listener = ServiceProvider.GetRequiredService<ITcpListenerFactory>().Create(IPAddress.Any, Port, () => new TcpConnectionMetadata());
     }
 
     public IServiceProvider ServiceProvider { get; }
@@ -25,44 +24,31 @@ public class TcpHostedService : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        Server.Listen();
-        Logger.LogInformation("tcp listen on port:{port}", Port);
-        Accept();
+        _listener.SessionAdded += (s, e) =>
+        {
+            ConnectionService.Add(new TcpConnection(ConnectionService, e.Session));
+        };
+        _listener.SessionRemoved += (s, e) =>
+        {
+            var connection = ConnectionService.Get(x => x.Session == e.Session);
+            if (connection is not null) ConnectionService.Remove(connection);
+        };
+        _listener.StateChanged += (s, e) =>
+        {
+            if(e.Current==TcpListnerStates.Listening) Logger.LogInformation("tcp listen on port:{port}", Port);
+        };
+        Listen(cancellationToken);
         await Task.CompletedTask;
     }
 
-    void Accept()
+    async void Listen(CancellationToken cancellationToken)
     {
-        Server.BeginAccept((result) =>
-        {
-            try
-            {
-                var connection = Server.EndAccept(result);
-                var session = new TcpSession(connection, this);
-                ConnectionService.Add(session);
-                session.Receive();
-                Accept();
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, ex.Message);
-            }
-        }, null);
+        await _listener.ListenAsync(cancellationToken);
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        Server.Dispose();
+        _listener.Dispose();
         await Task.CompletedTask;
-    }
-
-    internal TcpSession? GetSessionByUserId(Guid userId)
-    {
-        return ConnectionService.Get(x => x.UserId == userId);
-    }
-
-    internal void RemoveSession(TcpSession session)
-    {
-        ConnectionService.Remove(session);
     }
 }

@@ -1,7 +1,5 @@
 ﻿@model List<ConnectionViewModel>
 
-<button>广播</button>
-
 <table>
     <thead>
         <tr>
@@ -19,7 +17,6 @@
                 <td>@item.DeviceId</td>
                 <td>
                     <a asp-action="Disconnect" asp-route-userId="@item.UserId" asp-route-userName="@item.UserName" asp-route-deviceId="@item.DeviceId">断开</a>
-                    <a>发送消息</a>
                 </td>
             </tr>
         }

@@ -4,7 +4,7 @@ namespace ChatServer.Services;
 
 public abstract class BaseService<TData>
 {
-    List<TData> _data { get; } = [];
+    readonly List<TData> _data = [];
 
     protected BaseService()
     {

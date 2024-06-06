@@ -2,7 +2,7 @@
 
 namespace ChatServer.Services;
 
-public class ConnectionService:BaseService<TcpSession>
+public class ConnectionService : BaseService<TcpConnection>
 {
-    
+
 }
